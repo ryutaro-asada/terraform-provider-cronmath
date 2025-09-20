@@ -1,8 +1,8 @@
 terraform {
   required_providers {
     cronmath = {
-      source  = "ryutaro-asada/cronmath"
-      version = "~> 1.0"
+      source  = "registry.terraform.io/ryutaro-asada/cronmath"
+      version = "1.0.0"
     }
   }
 }
@@ -11,7 +11,9 @@ provider "cronmath" {
   # No configuration required
 }
 
+# ==================================================
 # Example 1: Simple time adjustment
+# ==================================================
 data "cronmath_calculate" "morning_schedule" {
   input = "5 9 * * *"  # 9:05 AM
   
@@ -24,10 +26,12 @@ data "cronmath_calculate" "morning_schedule" {
 
 output "morning_schedule_result" {
   value       = data.cronmath_calculate.morning_schedule.result
-  description = "Adjusted morning schedule: ${data.cronmath_calculate.morning_schedule.result}"
+  description = "Adjusted morning schedule"
 }
 
+# ==================================================
 # Example 2: Multiple operations
+# ==================================================
 data "cronmath_calculate" "complex_schedule" {
   input = "30 10 * * *"  # 10:30 AM
   
@@ -46,63 +50,12 @@ data "cronmath_calculate" "complex_schedule" {
 
 output "complex_schedule_result" {
   value       = data.cronmath_calculate.complex_schedule.result
-  description = "Complex schedule result: ${data.cronmath_calculate.complex_schedule.result}"
+  description = "Complex schedule result"
 }
 
-# Example 3: Resource for persistent schedule
-resource "cronmath_schedule" "backup_schedule" {
-  name        = "database-backup"
-  base_cron   = "0 2 * * *"  # 2:00 AM
-  description = "Database backup schedule with timezone adjustment"
-  
-  adjustments {
-    type  = "sub"
-    value = 5
-    unit  = "hours"
-  }
-}
-
-output "backup_schedule_final" {
-  value       = cronmath_schedule.backup_schedule.final_cron
-  description = "Backup schedule final time: ${cronmath_schedule.backup_schedule.final_cron}"
-}
-
-# Example 4: Staggered schedules
-locals {
-  base_sync_time = "0 3 * * *"  # 3:00 AM
-}
-
-resource "cronmath_schedule" "primary_sync" {
-  name        = "primary-sync"
-  base_cron   = local.base_sync_time
-  description = "Primary synchronization job"
-}
-
-resource "cronmath_schedule" "secondary_sync" {
-  name        = "secondary-sync"
-  base_cron   = local.base_sync_time
-  description = "Secondary synchronization job - 30 minutes after primary"
-  
-  adjustments {
-    type  = "add"
-    value = 30
-    unit  = "minutes"
-  }
-}
-
-resource "cronmath_schedule" "tertiary_sync" {
-  name        = "tertiary-sync"
-  base_cron   = local.base_sync_time
-  description = "Tertiary synchronization job - 1 hour after primary"
-  
-  adjustments {
-    type  = "add"
-    value = 1
-    unit  = "hours"
-  }
-}
-
+# ==================================================
 # Example 5: Timezone adjustments
+# ==================================================
 variable "utc_schedule" {
   default     = "0 15 * * *"  # 3:00 PM UTC
   description = "Base schedule in UTC"
@@ -138,6 +91,24 @@ data "cronmath_calculate" "jst_schedule" {
   }
 }
 
+# ==================================================
+# Outputs
+# ==================================================
+
+output "simple_calculations" {
+  value = {
+    morning = {
+      input  = data.cronmath_calculate.morning_schedule.input
+      result = data.cronmath_calculate.morning_schedule.result
+    }
+    complex = {
+      input  = data.cronmath_calculate.complex_schedule.input
+      result = data.cronmath_calculate.complex_schedule.result
+    }
+  }
+  description = "Simple calculation results"
+}
+
 output "timezone_schedules" {
   value = {
     utc = var.utc_schedule
@@ -147,3 +118,15 @@ output "timezone_schedules" {
   }
   description = "Schedules in different timezones"
 }
+
+# output "summary" {
+#   value = format(
+#     "\n========================================\n%s\n========================================\n%s\n%s\n%s\n%s\n\n%s\n%s\n%s\n%s\n========================================",
+#     "CronMath Provider Test Results",
+#     "Data Source Tests:",
+#     "  Morning: ${data.cronmath_calculate.morning_schedule.input} → ${data.cronmath_calculate.morning_schedule.result}",
+#     "  Complex: ${data.cronmath_calculate.complex_schedule.input} → ${data.cronmath_calculate.complex_schedule.result}",
+#     "  Timezones: UTC(${var.utc_schedule}) → JST(${data.cronmath_calculate.jst_schedule.result})",
+#   )
+#   description = "Test execution summary"
+# }
