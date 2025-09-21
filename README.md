@@ -68,30 +68,6 @@ output "adjusted_schedule" {
 }
 ```
 
-### Resource: cronmath_schedule
-
-Manage persistent cron schedules with adjustments:
-
-```hcl
-resource "cronmath_schedule" "backup" {
-  name        = "database-backup"
-  base_cron   = "0 2 * * *"  # 2:00 AM
-  description = "Nightly database backup"
-  
-  adjustments {
-    type  = "sub"
-    value = 5
-    unit  = "hours"
-  }
-}
-
-# Use with AWS CloudWatch Events
-resource "aws_cloudwatch_event_rule" "backup" {
-  name                = "database-backup"
-  schedule_expression = "cron(${cronmath_schedule.backup.final_cron})"
-}
-```
-
 ## Examples
 
 ### Timezone Adjustment
@@ -113,87 +89,6 @@ data "cronmath_calculate" "jst_schedule" {
   input = "0 10 * * *"  # 10:00 AM UTC
   
   operations {
-    type  = "add"
-    value = 9
-    unit  = "hours"
-  }
-}
-```
-
-### Staggered Schedules
-
-```hcl
-locals {
-  base_time = "0 1 * * *"  # 1:00 AM
-}
-
-resource "cronmath_schedule" "job_1" {
-  name      = "job-1"
-  base_cron = local.base_time
-}
-
-resource "cronmath_schedule" "job_2" {
-  name      = "job-2"
-  base_cron = local.base_time
-  
-  adjustments {
-    type  = "add"
-    value = 15
-    unit  = "minutes"
-  }
-}
-
-resource "cronmath_schedule" "job_3" {
-  name      = "job-3"
-  base_cron = local.base_time
-  
-  adjustments {
-    type  = "add"
-    value = 30
-    unit  = "minutes"
-  }
-}
-```
-
-### Complex Schedule Management
-
-```hcl
-# Base schedule in UTC
-variable "base_schedule" {
-  default = "0 12 * * *"  # Noon UTC
-}
-
-# Create regional schedules
-resource "cronmath_schedule" "us_east" {
-  name        = "us-east-schedule"
-  base_cron   = var.base_schedule
-  description = "US East Coast schedule (EST/EDT)"
-  
-  adjustments {
-    type  = "sub"
-    value = 5
-    unit  = "hours"
-  }
-}
-
-resource "cronmath_schedule" "europe" {
-  name        = "europe-schedule"
-  base_cron   = var.base_schedule
-  description = "Central European Time (CET/CEST)"
-  
-  adjustments {
-    type  = "add"
-    value = 1
-    unit  = "hours"
-  }
-}
-
-resource "cronmath_schedule" "asia_pacific" {
-  name        = "asia-pacific-schedule"
-  base_cron   = var.base_schedule
-  description = "Asia Pacific schedule (JST)"
-  
-  adjustments {
     type  = "add"
     value = 9
     unit  = "hours"

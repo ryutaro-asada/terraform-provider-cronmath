@@ -45,10 +45,9 @@ func (p *CronMathProvider) Configure(ctx context.Context, req provider.Configure
 	}
 }
 
+// empty resources as this provider only exposes data sources
 func (p *CronMathProvider) Resources(ctx context.Context) []func() resource.Resource {
-	return []func() resource.Resource{
-		NewCronScheduleResource,
-	}
+	return []func() resource.Resource{}
 }
 
 func (p *CronMathProvider) DataSources(ctx context.Context) []func() datasource.DataSource {
